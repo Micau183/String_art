@@ -35,8 +35,8 @@ def main(argv):
         generator.load_image(default_path)
 
     generator.preprocess()
-    generator.set_nb_clous(500)
-    generator.set_nb_fil(2100)
+    generator.set_nb_clous(100)
+    generator.set_nb_fil(100)
     pattern = generator.generate()
     
 
@@ -66,11 +66,10 @@ def main(argv):
     for i in range(0, len(lines_x), batchsize):
         plt.plot(lines_x[i:i+batchsize], lines_y[i:i+batchsize],
                  linewidth=0.1, color='k')
-        plt.draw()
-        plt.pause(0.000001)
+    plt.show()
     a = str(np.random.randint(0, 10000))
     print(a)
-    plt.savefig(input_path +a+'.png', bbox_inches='tight', pad_inches=0)
+    plt.savefig(str(input_path) +a+'.png', bbox_inches='tight', pad_inches=0)
 
     
 

@@ -18,6 +18,8 @@ class StringArtGenerator:
         self.paths =[]
         self.center = None
         self.weight = 20
+        self.poids = 255
+        self.index_debut = 0
 
 
     def set_nb_fil(self, nb_fil):
@@ -40,6 +42,7 @@ class StringArtGenerator:
         y = [rayon + rayon*math.sin(t*angle) for t in pas]
 
         self.clous = list(zip(x, y))
+        #print(self.clous)
         #plt.figure(figsize=(8, 8))
         #plt.scatter(x, y, label='Données', color='black', marker='o')
         #plt.show()
@@ -186,5 +189,79 @@ class StringArtGenerator:
                 error += dx
 
         return path
-   
+    def generate_v2(self):
 
+        erreur = np.sum(self.data)
+        min_erreur = erreur
+        index = self.index_debut
+        next_index = 0
+        liste_de_fil = []
+        cpt = 0
+        prev_index = 1
+
+        for fil in range (self.nb_fil):
+            
+            if erreur < 0:
+                break
+
+            for i in range(int(self.nb_clous)):
+
+                gray_line_matrice = self.gray_line_calculator(self.clous[index], self.clous[i])
+
+                nouvelle_erreur = np.sum(self.data - gray_line_matrice) 
+                if (nouvelle_erreur < min_erreur ):
+                    next_index = i
+                    min_erreur = nouvelle_erreur
+                    print("Index : " +str(i))
+
+
+            liste_de_fil.append(self.clous[index])
+            index = next_index
+            
+            print(index)
+            erreur = min_erreur
+            print(str(cpt)+ " erreur: " + str(erreur))
+            cpt +=1
+            plt.imshow(self.data, cmap='gray')
+            plt.show()
+            self.data = self.data - gray_line_matrice
+            
+            self.data[self.data < 0.0] = 0.0
+        
+        return liste_de_fil
+    
+
+    
+
+    def gray_line_calculator(self, debut, fin):
+
+        x1, y1 = debut
+        x2, y2 = fin
+
+        #coefficient de la droite passant par les points début et fin (de la forme y = ax+b) 
+        a = (y2 - y1) / (x2 - x1)
+        b = y1 - a * x1
+
+        #On refait une matrice de zéros
+        gray_line = np.zeros(self.data.shape)
+
+        #On calcule la valeur de gris de chaque pixels
+        for i in range(int(min(x1,x2)), int(max(x1,x2))):
+            for j in range(int(min(y1,y2)), int(max(y1,y2))):
+                distance = abs(a * i - j + b) / math.sqrt(a**2 + 1)
+                gray_line[i,j]= self.scale_function(distance, self.poids)
+
+        return gray_line
+    
+    def scale_function(self, x, poids):
+        # Fonction qui permet de voir les lignes comme des nuances de gris
+        if x < -1.5:
+           return 0
+        elif -1.5 < x < -0.5:
+            return (x + 1.5) * poids
+        elif -0.5 < x < 0.5:
+            return 1 * poids
+        elif 0.5 < x < 1.5:
+            return (1.5 - x) * poids
+        else:
+            return 0
