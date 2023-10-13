@@ -36,8 +36,8 @@ def main(argv):
 
     generator.preprocess()
     generator.set_nb_clous(100)
-    generator.set_nb_fil(100)
-    pattern = generator.generate()
+    generator.set_nb_fil(300)
+    pattern = generator.generate_v2()
     
 
     lines_x = []
@@ -69,7 +69,7 @@ def main(argv):
     plt.show()
     a = str(np.random.randint(0, 10000))
     print(a)
-    plt.savefig(str(input_path) +a+'.png', bbox_inches='tight', pad_inches=0)
+    plt.savefig(str(input_path) +a+'v2.png', bbox_inches='tight', pad_inches=0)
 
     
 

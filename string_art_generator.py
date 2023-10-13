@@ -18,7 +18,7 @@ class StringArtGenerator:
         self.paths =[]
         self.center = None
         self.weight = 20
-        self.poids = 255
+        self.poids = 50
         self.index_debut = 0
 
 
@@ -201,33 +201,37 @@ class StringArtGenerator:
 
         for fil in range (self.nb_fil):
             
-            if erreur < 0:
+            if erreur < 5:
                 break
 
             for i in range(int(self.nb_clous)):
 
                 gray_line_matrice = self.gray_line_calculator(self.clous[index], self.clous[i])
+                new_matrice = self.data - gray_line_matrice
+                new_matrice[new_matrice < 0.0] = 0.0
 
-                nouvelle_erreur = np.sum(self.data - gray_line_matrice) 
+                nouvelle_erreur = np.sum(new_matrice) 
                 if (nouvelle_erreur < min_erreur ):
                     next_index = i
                     min_erreur = nouvelle_erreur
-                    print("Index : " +str(i))
+                    next_matrice = new_matrice
+    
 
 
-            liste_de_fil.append(self.clous[index])
-            index = next_index
             
-            print(index)
+           
             erreur = min_erreur
-            print(str(cpt)+ " erreur: " + str(erreur))
-            cpt +=1
-            plt.imshow(self.data, cmap='gray')
-            plt.show()
-            self.data = self.data - gray_line_matrice
+            
+            self.data = self.data - self.gray_line_calculator(self.clous[index], self.clous[next_index])
             
             self.data[self.data < 0.0] = 0.0
-        
+            index = next_index
+            
+            print(cpt, erreur)
+            liste_de_fil.append(self.clous[index])
+            print(cpt)
+            cpt +=1
+
         return liste_de_fil
     
 

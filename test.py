@@ -17,15 +17,16 @@ class Test:
 
     def set_clous(self):
         (n,m) = self.data.shape
-        for i in range (n):
-            self.clous.append([0,0])
-            self.nb_clous +=7
-            self.clous.append([0,5])
-            self.clous.append([0,10])
-            self.clous.append([5,10])
-            self.clous.append([10,0])
-            self.clous.append([10,5])
-            self.clous.append([10,10])
+        self.clous.append([0,0])
+        self.nb_clous +=7
+        self.clous.append([0,5])
+        self.clous.append([0,10])
+        self.clous.append([5,10])
+        self.clous.append([10,0])
+        self.clous.append([10,5])
+        self.clous.append([10,10])
+        #for i in range (n):
+            
 
 
     def data_random(self):
@@ -43,11 +44,26 @@ class Test:
         a = y2 - y1
         b = x1 - x2
         c = x1 * (y1 - y2) - y1 * (x1 - x2)
+        
 
         #On refait une matrice de zéros
         gray_line = np.zeros(self.data.shape)
 
-        #On calcule la valeur de gris de chaque pixels
+        #On gère les lignes verticales et horizontale ici
+        if x1 == x2 and y1 == y2: 
+            return gray_line
+        
+        if x1 == x2:
+            for i in range(abs(y2 -y1)):
+                gray_line[x1-1, i-1] = 1*self.poids
+            return gray_line
+        if y1 == y2:
+            for i in range(abs(x2 -x1)):
+                gray_line[i-1, y1-1] = 1*self.poids
+            return gray_line
+
+
+        #ça va jusqu'au bord parce qu'on se limite au carré de x1 y1 à x2 y2 donc sur les bords c'est moche
         for i in range(int(min(x1,x2)), int(max(x1,x2))):
             for j in range(int(min(y1,y2)), int(max(y1,y2))):
                 distance = abs(a * i + b * j - c) / math.sqrt(a**2 + b**2)
@@ -74,13 +90,33 @@ class Test:
         
     def generate(self):
         index = 0
+        erreur = np.sum(self.data)
 
-        for i in range(3):
+        for i in range(15):
             for n in range(self.nb_clous):  
-                print(str(i) + " " + str(n))
                 grayline = self.gray_line_calculator(self.clous[index], self.clous[n])
-                plt.imshow(grayline, cmap='gray')
-                plt.show()
+
+                new_matrice = self.data - grayline
+                new_matrice[new_matrice < 0.0] = 0.0
+                nouvelle_erreur  = np.sum(new_matrice)
+                if (nouvelle_erreur < erreur):
+                    erreur = nouvelle_erreur
+                    nouvel_index = n 
+                    print(self.clous[nouvel_index])
+
+            
+            print(self.clous[index], self.clous[nouvel_index])
+            
+            grayline = self.gray_line_calculator(self.clous[index], self.clous[nouvel_index])
+            index = nouvel_index 
+            #plt.imshow(grayline, cmap='gray')
+            #plt.show()
+            self.data = self.data - grayline
+            self.data[self.data < 0.0] = 0.0
+
+                
+            plt.imshow(self.data, cmap='gray')
+            plt.show()
                 
         
 
