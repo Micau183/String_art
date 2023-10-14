@@ -9,18 +9,27 @@ import copy
 from PIL import Image, ImageOps, ImageFilter, ImageEnhance
 
 class StringArtGenerator:
+
     def __init__(self):
+
+        #algo 1 et 2
         self.image = None
         self.data = None
         self.nb_clous = 0
         self.nb_fil = 0
         self.clous = []
-        self.paths =[]
-        self.center = None
-        self.weight = 20
-        self.poids = 50
         self.index_debut = 0
+        self.pattern = []
 
+        #algo 1 uniquement
+        self.paths =[]
+        self.weight = 20
+
+        #algo 2 uniquement
+        self.poids = 50
+###-------------------------------###
+### Partie commune aux deux algos ###
+###-------------------------------###
 
     def set_nb_fil(self, nb_fil):
         self.nb_fil = nb_fil
@@ -33,14 +42,13 @@ class StringArtGenerator:
         angle = (2*math.pi)/self.nb_clous
 
         pas = range(self.nb_clous)
-
-
+        
 
         rayon = self.get_rayon()
-
+        
         x = [rayon + rayon*math.cos(t*angle) for t in pas]
         y = [rayon + rayon*math.sin(t*angle) for t in pas]
-
+        
         self.clous = list(zip(x, y))
         #print(self.clous)
         #plt.figure(figsize=(8, 8))
@@ -58,6 +66,7 @@ class StringArtGenerator:
         #self.image.show()
     
     def get_rayon(self):
+        
         return 0.5*np.min(np.shape(self.data))
     
     def preprocess(self):
@@ -70,7 +79,41 @@ class StringArtGenerator:
         np_img = np.array(self.image)
         self.data = np.flipud(np_img).transpose()
         #self.image.show()
+
+    def rendu(self, name):
+        #print (self.paths)
+        lines_x = []
+        lines_y = []
+        for i, j in zip(self.pattern, self.pattern[1:]):
+            lines_x.append((i[0], j[0]))
+            lines_y.append((i[1], j[1]))
+
+        xmin = 0.
+        ymin = 0.
+        xmax = self.data.shape[0]
+        ymax = self.data.shape[1]
+
+        plt.ion()
+        plt.figure(figsize=(5, 5))
+        plt.axis('off')
+        axes = plt.gca()
+        axes.set_xlim([xmin, xmax])
+        axes.set_ylim([ymin, ymax])
+        axes.get_xaxis().set_visible(False)
+        axes.get_yaxis().set_visible(False)
+        axes.set_aspect('equal')
+        plt.draw()
+
+        batchsize = 10
+        for i in range(0, len(lines_x), batchsize):
+            plt.plot(lines_x[i:i+batchsize], lines_y[i:i+batchsize],
+                 linewidth=0.1, color='k')
+        print(str(name) +"_"+str(self.nb_clous)+"_"+str(self.nb_fil) + "_v2.png")
+        plt.savefig(str(name) +"_"+str(self.nb_clous)+"_"+str(self.nb_fil) + "_v2.png", bbox_inches='tight', pad_inches=0)
     
+    ###---------------------------------------------------------------------------------###
+    ###----------------------------------------Algo 1-----------------------------------###
+    ###---------------------------------------------------------------------------------###
     def generate(self):
         self.calculate_paths()
         liste_de_fil = []
@@ -102,8 +145,7 @@ class StringArtGenerator:
             index_depart = darkest_index
 
         self.data = datacopy
-
-        return liste_de_fil
+        self.pattern = liste_de_fil
 
     def choose_darkest_path(self, index):
         max_darkness = -1.0
@@ -189,6 +231,10 @@ class StringArtGenerator:
                 error += dx
 
         return path
+    
+    ###---------------------------------------------------------------------------------###
+    ###----------------------------------------Algo 2-----------------------------------###
+    ###---------------------------------------------------------------------------------###
     def generate_v2(self):
 
         erreur = np.sum(self.data)
@@ -197,9 +243,10 @@ class StringArtGenerator:
         next_index = 0
         liste_de_fil = []
         cpt = 0
-        prev_index = 1
-
+        
+        #print(self.nb_fil)
         for fil in range (self.nb_fil):
+            
             
             if erreur < 5:
                 break
@@ -218,8 +265,6 @@ class StringArtGenerator:
     
 
 
-            
-           
             erreur = min_erreur
             
             self.data = self.data - self.gray_line_calculator(self.clous[index], self.clous[next_index])
@@ -229,13 +274,10 @@ class StringArtGenerator:
             
             print(cpt, erreur)
             liste_de_fil.append(self.clous[index])
-            print(cpt)
             cpt +=1
-
-        return liste_de_fil
+        self.pattern = liste_de_fil
     
 
-    
 
     def gray_line_calculator(self, debut, fin):
 
@@ -269,3 +311,5 @@ class StringArtGenerator:
             return (1.5 - x) * poids
         else:
             return 0
+        
+    

@@ -6,74 +6,82 @@ import matplotlib.pyplot as plt
 import numpy as np
 from string_art_generator import StringArtGenerator
 
-
 def main(argv):
+
     generator = StringArtGenerator()
+
     input_path = None
+    input_fil = None
+    input_clou = None
+
     default_path = "Images\Pomme.PNG"
+    default_clou = 100
+    default_fil = 100
+    
 
     try:
-        options, arguments = getopt.getopt(argv, "s:", ["string="])
+       options, arguments = getopt.getopt(argv, "s:c:f:", ["string=", "clou=", "fil="])
     except getopt.GetoptError:
-        print("Usage: script.py -s "+default_path)
+        print("Usage: script.py -s <string> -c <clou> -f <fil>")
         sys.exit(2)
 
     for option, value in options:
         if option in ("-s", "--string"):
             
             input_path = value
+
+        if option in ("-c", "--clou"):
             
-            try:
-                
-                generator.load_image("Images\\"+input_path)
-                # print("Images\\"+input_path)
-            except Exception as e:
-               print(f"Une erreur s'est produite lors du chargement de l'image : {e}")
+            input_clou = int(value)
+            #print("input clou : " + str(input_clou))
+            
+            
+        if option in ("-f", "--fil"):
+            
+            input_fil = int(value)
+            #print(input_fil)
+
 
     if input_path is None:
         print("Default Path")
         generator.load_image(default_path)
-
+    else: 
+        try:
+                
+            generator.load_image("Images\\"+input_path)
+            # print("Images\\"+input_path)
+        except Exception as e:
+            print(f"Une erreur s'est produite lors du chargement de l'image : {e}")
+    
     generator.preprocess()
-    generator.set_nb_clous(100)
-    generator.set_nb_fil(300)
-    pattern = generator.generate_v2()
+
+    if input_clou is None:
+        print("Default Clous")
+        generator.set_nb_clous(default_clou)
+    else:
+        try:
+                
+            generator.set_nb_clous(input_clou)
+               
+        except Exception as e:
+                
+            print(f"Une erreur s'est produite lors du chargement des clous : {e}")
     
 
-    lines_x = []
-    lines_y = []
-    for i, j in zip(pattern, pattern[1:]):
-        lines_x.append((i[0], j[0]))
-        lines_y.append((i[1], j[1]))
+    if input_fil is None:
+        print("Default Fils")
+        generator.set_nb_fil(default_fil)
+    else:
+        try:
+                
+            generator.set_nb_fil(input_fil)
+               
+        except Exception as e:
+                
+            print(f"Une erreur s'est produite lors du chargement des fils : {e}")
 
-    xmin = 0.
-    ymin = 0.
-    xmax = generator.data.shape[0]
-    ymax = generator.data.shape[1]
-
-    plt.ion()
-    plt.figure(figsize=(5, 5))
-    plt.axis('off')
-    axes = plt.gca()
-    axes.set_xlim([xmin, xmax])
-    axes.set_ylim([ymin, ymax])
-    axes.get_xaxis().set_visible(False)
-    axes.get_yaxis().set_visible(False)
-    axes.set_aspect('equal')
-    plt.draw()
-
-    batchsize = 10
-    for i in range(0, len(lines_x), batchsize):
-        plt.plot(lines_x[i:i+batchsize], lines_y[i:i+batchsize],
-                 linewidth=0.1, color='k')
-    plt.show()
-    a = str(np.random.randint(0, 10000))
-    print(a)
-    plt.savefig(str(input_path) +a+'v2.png', bbox_inches='tight', pad_inches=0)
-
-    
-
-    
+    generator.generate_v2()
+    generator.rendu(str(input_path))
 
 if __name__ == "__main__":
     main(sys.argv[1:])
