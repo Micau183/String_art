@@ -1,12 +1,13 @@
 import sys
 import getopt
-import cProfile
-import pstats
+import time
 import matplotlib.pyplot as plt
 import numpy as np
 from string_art_generator import StringArtGenerator
 
 def main(argv):
+    start_time = time.time()
+
 
     generator = StringArtGenerator()
 
@@ -80,8 +81,11 @@ def main(argv):
                 
             print(f"Une erreur s'est produite lors du chargement des fils : {e}")
 
-    generator.generate_v2()
+    generator.generate_v2_5()
     generator.rendu(str(input_path))
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution time: {execution_time:.2f} seconds")
 
 if __name__ == "__main__":
     main(sys.argv[1:])

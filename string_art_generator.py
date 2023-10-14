@@ -23,10 +23,10 @@ class StringArtGenerator:
 
         #algo 1 uniquement
         self.paths =[]
-        self.weight = 20
+        self.weight = 10
 
         #algo 2 uniquement
-        self.poids = 50
+        self.poids = 20
 ###-------------------------------###
 ### Partie commune aux deux algos ###
 ###-------------------------------###
@@ -77,7 +77,8 @@ class StringArtGenerator:
 
         self.image = ImageEnhance.Contrast(self.image).enhance(1)
         np_img = np.array(self.image)
-        self.data = np.flipud(np_img).transpose()
+        #si ça marche plus enlever le .astype(np.int32)
+        self.data = (np.flipud(np_img).transpose()).astype(np.int32)
         #self.image.show()
 
     def rendu(self, name):
@@ -108,8 +109,8 @@ class StringArtGenerator:
         for i in range(0, len(lines_x), batchsize):
             plt.plot(lines_x[i:i+batchsize], lines_y[i:i+batchsize],
                  linewidth=0.1, color='k')
-        print(str(name) +"_"+str(self.nb_clous)+"_"+str(self.nb_fil) + "_v2.png")
-        plt.savefig(str(name) +"_"+str(self.nb_clous)+"_"+str(self.nb_fil) + "_v2.png", bbox_inches='tight', pad_inches=0)
+        print(str(name) +"_"+str(self.nb_clous)+"_"+str(self.nb_fil) + "_v2_5.png")
+        plt.savefig(str(name) +"_"+str(self.nb_clous)+"_"+str(self.nb_fil) + "_v2_5.png", bbox_inches='tight', pad_inches=0)
     
     ###---------------------------------------------------------------------------------###
     ###----------------------------------------Algo 1-----------------------------------###
@@ -237,31 +238,43 @@ class StringArtGenerator:
     ###---------------------------------------------------------------------------------###
     def generate_v2(self):
 
-        erreur = np.sum(self.data)
+        initial_erreur = np.sum(self.data)
+        erreur = initial_erreur
         min_erreur = erreur
         index = self.index_debut
         next_index = 0
         liste_de_fil = []
         cpt = 0
+        opti = 0
         
         #print(self.nb_fil)
         for fil in range (self.nb_fil):
             
             
-            if erreur < 5:
+            if erreur < initial_erreur*0.2:
+                self.nb_fil = cpt
                 break
+                
 
             for i in range(int(self.nb_clous)):
+                
+                if opti > 50:
+                    print("là")
+                    opti = 0
+                    break
 
                 gray_line_matrice = self.gray_line_calculator(self.clous[index], self.clous[i])
-                new_matrice = self.data - gray_line_matrice
-                new_matrice[new_matrice < 0.0] = 0.0
+                error_matrice = self.data - gray_line_matrice
+                error_matrice[error_matrice < 0.0] = 0.0
+                # on essaie ça :
+                #error_matrice = np.abs(error_matrice)
+                #ça marche pas
 
-                nouvelle_erreur = np.sum(new_matrice) 
+                nouvelle_erreur = np.sum(error_matrice) 
                 if (nouvelle_erreur < min_erreur ):
+                    opti +=1
                     next_index = i
                     min_erreur = nouvelle_erreur
-                    next_matrice = new_matrice
     
 
 
@@ -312,4 +325,80 @@ class StringArtGenerator:
         else:
             return 0
         
+    ###-----------------------------------------------------------------------------------###
+    ###----------------------------------------Algo 2.5-----------------------------------###
+    ###-----------------------------------------------------------------------------------###
+        
+    def add_bres_to_grayline(self, matrice, path):
+        (h, l) = self.data.shape
+        for points in range(len(path)):
+            [i,j] = path[points]
+
+            matrice[i%h,j%l] -= int(self.poids)
+            #print(matrice[i%h,j%l])
+
+
+            matrice[(i+1)%h,(j)%l] -= int(self.poids/3)
+            matrice[(i-1)%h,(j)%l] -= int(self.poids/3)
+            matrice[(i)%h,(j+1)%l] -= int(self.poids/3)
+            matrice[(i)%h,(j-1)%l] -= int(self.poids/3)
+
+            matrice[(i+1)%h,(j+1)%l] -= int(self.poids/5)
+            matrice[(i-1)%h,(j+1)%l] -= int(self.poids/5)
+            matrice[(i+1)%h,(j-1)%l] -= int(self.poids/5)
+            matrice[(i-1)%h,(j-1)%l] -= int(self.poids/5)
+        #plt.imshow(matrice, cmap='gray')
+        #plt.show()
+            
+
+    def generate_v2_5(self):
+
+        initial_erreur = np.sum(self.data)
+        erreur = initial_erreur
+        min_erreur = erreur
+        index = self.index_debut
+        next_index = 0
+        liste_de_fil = []
+        cpt = 0
+        opti = 0
+        next_matrice = self.data
+        
+        #print(self.nb_fil)
+        for fil in range (self.nb_fil):
+            
+            
+            if erreur < initial_erreur*0.03:
+                self.nb_fil = cpt
+                break
+                
+
+            for i in range(int(self.nb_clous)):
+                
+                # if opti > 50:
+                #     print("là")
+                #     opti = 0
+                #     break
+                path = self.bresenham_path(self.clous[index], self.clous[i])
+                error_matrice = np.copy(self.data)
+                self.add_bres_to_grayline(error_matrice, path)
+                error_matrice[error_matrice < 0.0] = 0.0
+
+                nouvelle_erreur = np.sum(error_matrice)
+                
+                if (nouvelle_erreur < min_erreur ):
+                    opti +=1
+                    
+                    next_index = i
+                    min_erreur = nouvelle_erreur
+                    next_matrice = error_matrice
     
+            erreur = min_erreur
+            
+            self.data = next_matrice
+
+            index = next_index
+            
+            print(cpt, erreur)
+            liste_de_fil.append(self.clous[index])
+            cpt +=1
+        self.pattern = liste_de_fil
