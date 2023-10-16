@@ -1,4 +1,3 @@
-#!C:\Users\lilia\AppData\Local\Programs\Python\Python310\python.exe
 
 from typing import Any
 import numpy as np
@@ -23,10 +22,10 @@ class StringArtGenerator:
 
         #algo 1 uniquement
         self.paths =[]
-        self.weight = 10
+        self.weight = 30
 
         #algo 2 uniquement
-        self.poids = 20
+        self.poids = 10
 ###-------------------------------###
 ### Partie commune aux deux algos ###
 ###-------------------------------###
@@ -79,7 +78,7 @@ class StringArtGenerator:
         np_img = np.array(self.image)
         #si ça marche plus enlever le .astype(np.int32)
         self.data = (np.flipud(np_img).transpose()).astype(np.int32)
-        #self.image.show()
+       #self.image.show()
 
     def rendu(self, name):
         #print (self.paths)
@@ -259,7 +258,6 @@ class StringArtGenerator:
             for i in range(int(self.nb_clous)):
                 
                 if opti > 50:
-                    print("là")
                     opti = 0
                     break
 
