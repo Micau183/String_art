@@ -1,6 +1,19 @@
 # String Art
+![Language](https://img.shields.io/badge/Language-Python-f2cb1b)
+<br/>
 
 Projet de conversion d'image en String Art.
+
+<br/>
+
+<div style="display: flex; align-items: center;">
+    <img src="https://i.imgur.com/IZZSufN.png" style="width: 50%;">
+</div>
+
+
+
+<br/>
+
 
 ## Explications
 
